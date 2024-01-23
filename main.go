@@ -9,28 +9,25 @@ import (
 	"strings"
 )
 
-var a, b, op *string
-var roman *bool
-var x, y *int
-var result *int
-
-func solve(a, b, op *string) (result *int, roman *bool) {
+func solve(a, b, op string, x, y *int, roman *bool) (result int) {
     var aRoman, bRoman bool
 
     //проверили на системы
-    firstOperand, err := strconv.Atoi(*a)
+    firstOperand, err := strconv.Atoi(a)
     if err != nil {
         aRoman = true
+        firstOperand = 1
     }
-    secondOperand, err := strconv.Atoi(*b)
+    secondOperand, err := strconv.Atoi(b)
     if err != nil {
         bRoman = true
+        secondOperand = 1
     }
     if aRoman != bRoman {
         panic("Числам из разных систем тут не рады")
     }
-    if firstOperand > 10 || secondOperand > 10 {
-        panic("Арабские числа больше 10 вызывают у меня дискомфорт")
+    if firstOperand > 10 || secondOperand > 10 || firstOperand < 1 || secondOperand < 1 {
+        panic("Арабские числа больше 10 и меньше 1 вызывают у меня дискомфорт")
     }
 
     if aRoman == true && bRoman == true {
@@ -39,40 +36,55 @@ func solve(a, b, op *string) (result *int, roman *bool) {
         }
         *x = romanToInt(a) 
         *y = romanToInt(b)
+        *roman = true
     } else {
         *x = firstOperand
+
         *y = secondOperand
+
+        *roman = false
     }
 
     switch {
-    case *op == "+":
-        *result = *x + *y
-    case *op == "-":
-        *result = *x - *y
-    case *op == "*":
-        *result = *x * *y
-    case *op == "/":
-        *result = *x / *y
+    case op == "+":
+        result = *x + *y
+    case op == "-":
+        result = *x - *y
+    case op == "*":
+        result = *x * *y
+    case op == "/":
+        result = *x / *y
     }
 
-    return result, roman
+
+    return result
 }
 
-func decompose(operation string, operators [4]string){
+func decompose(operation string, operators [4]string, a, b, op *string){
     for _, operator := range operators {
         before, after, found := strings.Cut(operation, operator)
         if found == false {
             continue
         }
-        *a = before
-        *b = after
-        *op = operator
+        
+        *a = strings.TrimSpace(strings.ToUpper(before))
+
+
+        *b = strings.TrimSpace(strings.ToUpper(after))
+
+
+        *op = strings.TrimSpace(strings.ToUpper(operator))
+
         break
     }
 }
 
 func main() {
     operators := [4]string{"/", "*", "+", "-"}
+    var a, b, op string
+    var roman bool
+    var x, y int
+    var result int
 
     fmt.Println("Welcome to kata-calculator")
     for {
@@ -81,17 +93,17 @@ func main() {
         if err != nil {
             panic(err)
         }
-        strings.ReplaceAll(console, " ", "")
-        strings.ToUpper(console)
 
 
 
-        decompose(console, operators) //после этой функции понятен оператор, а также записаны операнды
-        solve(a, b, op)
-        if *roman == true {
-            fmt.Print(intToRoman(result))
+
+        decompose(console, operators, &a, &b, &op) //после этой функции понятен оператор, а также записаны операнды
+        result = solve(a, b, op, &x, &y, &roman)
+        if roman == true {
+            fmt.Print(intToRoman(&result), "\n", "Введите следующее выражение \n")
+            
         } else {
-            fmt.Print(result)
+            fmt.Print(result, "\n", "Введите следующее выражение \n")
         }
     }
 }
@@ -99,7 +111,8 @@ func main() {
 
 
 
-func romanToInt(s *string) int {
+func romanToInt(s string) int {
+    
     compares := map[string]int{
         "I" : 1,
         "V" : 5,
@@ -110,12 +123,12 @@ func romanToInt(s *string) int {
 
     integer := 0
 
-    for i := 0; i < len(*s); i++ {
-        current := string((*s)[i])
+    for i := 0; i < len(s); i++ {
+        current := string((s)[i])
         next := ""
 
-        if i < (len(*s)-1) {
-            next = string((*s)[i+1])
+        if i < (len(s)-1) {
+            next = string((s)[i+1])
         }
 
         if compares[current] < compares[next] {
@@ -129,6 +142,10 @@ func romanToInt(s *string) int {
 }
 
 func intToRoman(num *int) string {
+    if *num < 1 {
+        panic("Римляне не в курсе про отрицательные числа и ноль")
+    }
+
     comparesMap := map[int]string {
     1     :   "I" ,
     5     :   "V" ,
