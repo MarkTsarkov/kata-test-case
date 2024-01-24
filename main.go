@@ -20,6 +20,9 @@ func solve(a, b, op string, x, y *int, roman *bool) (result int) {
     }
     secondOperand, err := strconv.Atoi(b)
     if err != nil {
+        if strings.Contains(b, "*") || strings.Contains(b, "/") || strings.Contains(b, "+") || strings.Contains(b, "-") {
+            panic("Формат операции не подходит")
+        }
         bRoman = true
         secondOperand = 1
     }
@@ -64,15 +67,15 @@ func decompose(operation string, operators [4]string, a, b, op *string){
     for _, operator := range operators {
         before, after, found := strings.Cut(operation, operator)
         if found == false {
-            continue
+            if operator == "+" || operator == "/" || operator == "*" || operator == "-" {
+                continue
+            } else {
+                panic("Это не похоже на математику")
+            }
         }
-        
+
         *a = strings.TrimSpace(strings.ToUpper(before))
-
-
         *b = strings.TrimSpace(strings.ToUpper(after))
-
-
         *op = strings.TrimSpace(strings.ToUpper(operator))
 
         break
@@ -86,16 +89,13 @@ func main() {
     var x, y int
     var result int
 
-    fmt.Println("Welcome to kata-calculator")
+    fmt.Print("Welcome to kata-calculator \nНапиши операцию в формате 'x + y'\n")
     for {
         reader := bufio.NewReader(os.Stdin)
         console, err := reader.ReadString('\n')
         if err != nil {
             panic(err)
         }
-
-
-
 
         decompose(console, operators, &a, &b, &op) //после этой функции понятен оператор, а также записаны операнды
         result = solve(a, b, op, &x, &y, &roman)
